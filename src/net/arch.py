@@ -115,14 +115,14 @@ class Colorizer(nn.Module):
 
         self.softmax = nn.Sequential(
             *[
-                nn.Conv2d(256, 313, 1, padding=0, stride=1, dilation=1, bias=True),
+                nn.Conv2d(256, 326, 1, padding=0, stride=1, dilation=1, bias=True),
                 nn.Softmax2d(),
             ]
         )
 
         self.upsampler = nn.Sequential(
             *[
-                nn.Conv2d(313, 2, 1, padding=0, stride=1, dilation=1, bias=True),
+                nn.Conv2d(326, 2, 1, padding=0, stride=1, dilation=1, bias=True),
                 nn.Upsample(scale_factor=4, mode="bilinear"),
             ]
         )
