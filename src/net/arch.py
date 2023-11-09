@@ -18,12 +18,12 @@ def normalize_ab(ab):
 def unnorm_ab(ab):
     return ab * AB_RANGE
 
-def Colorizer(nn.Module):
+class Colorizer(nn.Module):
     def __init__(self):
         super(Colorizer, self).__init__()
 
         self.conv1 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(1, 64, 3, padding=1, stride=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(64, 64, 3, padding=1, stride=2, bias=True),
@@ -33,7 +33,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv2 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(64, 128, 3, padding=1, stride=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(128, 128, 3, padding=1, stride=2, bias=True),
@@ -43,7 +43,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv3 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(128, 256, 3, padding=1, stride=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(256, 256, 3, padding=1, stride=1, bias=True),
@@ -55,7 +55,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv4 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(256, 512, 3, padding=1, stride=1, dilation=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(512, 512, 3, padding=1, stride=1, dilation=1, bias=True),
@@ -67,7 +67,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv5 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(512, 512, 3, padding=2, stride=1, dilation=2, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(512, 512, 3, padding=2, stride=1, dilation=2, bias=True),
@@ -79,7 +79,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv6 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(512, 512, 3, padding=2, stride=1, dilation=2, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(512, 512, 3, padding=2, stride=1, dilation=2, bias=True),
@@ -91,7 +91,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv7 = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(512, 512, 3, padding=1, stride=1, dilation=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(512, 512, 3, padding=1, stride=1, dilation=1, bias=True),
@@ -103,7 +103,7 @@ def Colorizer(nn.Module):
         )
 
         self.conv8 = nn.Sequential(
-            [
+            *[
                 nn.ConvTranspose2d(512, 256, 4, padding=1, stride=2, dilation=1, bias=True),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(256, 256, 3, padding=1, stride=1, dilation=1, bias=True),
@@ -114,14 +114,14 @@ def Colorizer(nn.Module):
         )
 
         self.softmax = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(256, 313, 1, padding=0, stride=1, dilation=1, bias=True),
                 nn.Softmax2d(),
             ]
         )
 
         self.upsampler = nn.Sequential(
-            [
+            *[
                 nn.Conv2d(313, 2, 1, padding=0, stride=1, dilation=1, bias=True),
                 nn.Upsample(scale_factor=4, mode="bilinear"),
             ]
@@ -142,4 +142,11 @@ def Colorizer(nn.Module):
         x = unnorm_ab(x)
 
         return x
+
+
+if __name__ == "__main__":
+    import torchsummary
+    model = Colorizer()
+    torchsummary.summary(model, (1, 32, 32))
+
         
