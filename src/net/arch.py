@@ -120,6 +120,7 @@ class Colorizer(nn.Module):
             ]
         )
 
+        # this should be removed, prediction to ab space should be done with mapping H
         self.upsampler = nn.Sequential(
             *[
                 nn.Conv2d(326, 2, 1, padding=0, stride=1, dilation=1, bias=True),
