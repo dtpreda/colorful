@@ -7,7 +7,6 @@ from tqdm import tqdm
 import torchvision
 import numpy as np
 import torch
-matplotlib.use('Agg')
 
 from colour.soft_encode import soft_encode
 
