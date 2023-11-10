@@ -116,20 +116,12 @@ class Colorizer(nn.Module):
         self.softmax = nn.Sequential(
             *[
                 nn.Conv2d(256, 326, 1, padding=0, stride=1, dilation=1, bias=True),
+                nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True),
                 nn.Softmax2d(),
             ]
         )
 
-        # this should be removed, prediction to ab space should be done with mapping H
-        self.upsampler = nn.Sequential(
-            *[
-                nn.Conv2d(326, 2, 1, padding=0, stride=1, dilation=1, bias=True),
-                nn.Upsample(scale_factor=4, mode="bilinear"),
-            ]
-        )
-
     def forward(self, x):
-        x = normalize_l(x)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
@@ -139,8 +131,6 @@ class Colorizer(nn.Module):
         x = self.conv7(x)
         x = self.conv8(x)
         x = self.softmax(x)
-        x = self.upsampler(x)
-        x = unnorm_ab(x)
 
         return x
 
