@@ -70,12 +70,12 @@ if __name__ == "__main__":
                 prediction = prediction.permute(0, 2, 3, 1)
                 ab = ab.permute(0, 2, 3, 1)
 
-                ground_truth = soft_encode(ab, centroids=hull, n=5)
+                ground_truth = soft_encode(ab.cpu().numpy(), centroids=hull, n=5)
                 pixelwise_weights = reweight(ground_truth, weights)
 
-                prediction = torch.FloatTensor(prediction)
-                ground_truth = torch.FloatTensor(ground_truth)
-                pixelwise_weights = torch.FloatTensor(pixelwise_weights)
+                # prediction = torch.FloatTensor(prediction)
+                ground_truth = torch.FloatTensor(ground_truth).to(device)
+                pixelwise_weights = torch.FloatTensor(pixelwise_weights).to(device)
 
                 loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
