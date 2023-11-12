@@ -2,22 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-L_CENTER = 50.0
-L_RANGE = 100.0
-AB_RANGE = 110.0
-
-def normalize_l(l):
-    return (l - L_CENTER) / L_RANGE
-
-def unnorm_l(l):
-    return l * L_RANGE + L_CENTER
-
-def normalize_ab(ab):
-    return ab / AB_RANGE
-
-def unnorm_ab(ab):
-    return ab * AB_RANGE
-
 class Colorizer(nn.Module):
     def __init__(self):
         super(Colorizer, self).__init__()
