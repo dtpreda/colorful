@@ -1,5 +1,5 @@
 from sklearn.neighbors import NearestNeighbors
-from colour.quantize import get_ab_centroids
+from src.colour.quantize import get_ab_centroids
 import numpy as np
 
 def soft_encode(ab, centroids=get_ab_centroids(), n=5):

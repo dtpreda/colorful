@@ -1,6 +1,7 @@
-from net.arch import Colorizer
-from net.annealed import annealed_mean
-from weight import reweight
+from src.net.arch import Colorizer
+from src.net.annealed import annealed_mean
+from src.colour.soft_encode import soft_encode
+from src.weight import reweight
 
 import torchvision.transforms as transforms
 from skimage import color
@@ -11,7 +12,6 @@ import torch
 from torch.optim import Adam
 from torch import cuda
 
-from colour.soft_encode import soft_encode
 
 BATCH_SIZE = 64
 

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-from colour.soft_encode import soft_encode
+from src.colour.soft_encode import soft_encode
 
 def reweight(ab, weights):
     ab_max = np.argmax(ab, axis=-1)
