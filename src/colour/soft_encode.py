@@ -1,6 +1,8 @@
 from sklearn.neighbors import NearestNeighbors
-from src.colour.quantize import get_ab_centroids
+from colour.quantize import get_ab_centroids
 import numpy as np
+
+import torch
 
 def soft_encode(ab, centroids=get_ab_centroids(), n=5):
     neigh = NearestNeighbors(n_neighbors=n+1).fit(centroids)
@@ -9,15 +11,17 @@ def soft_encode(ab, centroids=get_ab_centroids(), n=5):
     n, h, w, c = ab.shape
     ab = ab.reshape(-1, 2)
     distances, indices = neigh.kneighbors(ab)
+    distances, indices = torch.from_numpy(distances.astype(np.float32)).to(ab.device), torch.from_numpy(indices.astype(np.int32)).to(ab.device)
     distances, indices = distances[:, 1:], indices[:, 1:]
-    distances = distances / np.sum(distances, axis=1, keepdims=True)
+    distances = distances / torch.sum(distances, dim=1, keepdim=True)
     
-    encoding = np.zeros((ab.shape[0], centroids.shape[0]), dtype=np.float32)
-    encoding[np.arange(ab.shape[0])[:, None], indices] = distances
+    encoding = torch.zeros((ab.shape[0], centroids.shape[0]), dtype=torch.float32)
+    encoding[torch.arange(ab.shape[0])[:, None], indices] = distances
 
     encoding = encoding.reshape(n, h, w, -1)
 
     return encoding
+
     
 
 if __name__ == "__main__":

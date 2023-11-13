@@ -2,7 +2,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from src.net.arch import Colorizer
-from src.net.annealed import annealed_mean
 from src.colour.soft_encode import soft_encode
 from src.weight import reweight
 
@@ -57,7 +56,7 @@ if __name__ == "__main__":
     device = set_device(args.gpu)
     
     hull = np.load("data/hull.npy")
-    weights = np.load("data/class_rebalance_weights.npy")
+    weights = np.load("data/stl10/class_rebalance_weights.npy")
 
     trainloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='unlabeled')
     testloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='test')
@@ -88,12 +87,8 @@ if __name__ == "__main__":
                 prediction = prediction.permute(0, 2, 3, 1)
                 ab = ab.permute(0, 2, 3, 1)
 
-                ground_truth = soft_encode(ab.cpu().numpy(), centroids=hull, n=5)
+                ground_truth = soft_encode(ab, centroids=hull, n=5)
                 pixelwise_weights = reweight(ground_truth, weights)
-
-                # prediction = torch.FloatTensor(prediction)
-                ground_truth = torch.FloatTensor(ground_truth).to(device)
-                pixelwise_weights = torch.FloatTensor(pixelwise_weights).to(device)
 
                 loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
