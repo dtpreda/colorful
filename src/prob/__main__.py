@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from argparse import ArgumentParser
 
-from colour.soft_encode import soft_encode
+from src.colour.soft_encode import soft_encode
 
 parser = ArgumentParser()
 parser.add_argument("--batch-size", type=int, default=64)
