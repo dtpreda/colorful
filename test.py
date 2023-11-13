@@ -1,6 +1,6 @@
 import torch
 from src.net.arch import Colorizer
-from src.net.annealed import annealed_mean
+from src.net.annealed import z_to_y
 
 import numpy as np
 import torchvision
@@ -27,7 +27,9 @@ if __name__ == "__main__":
         torch.cuda.set_device(args.gpu)
         print('Current single GPU: {}'.format(torch.cuda.current_device()))
 
-    state_dict = torch.load(args.model)
+    device = torch.device(args.gpu if use_gpu else "cpu")
+
+    state_dict = torch.load(args.model, map_location=device)
     
     transform = transforms.Compose([
         transforms.Lambda(import_image),
@@ -37,8 +39,6 @@ if __name__ == "__main__":
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=args.num_workers)
-    
-    device = torch.device(args.gpu if use_gpu else "cpu")
 
     model = Colorizer()
     model.load_state_dict(state_dict)
@@ -54,15 +54,17 @@ if __name__ == "__main__":
         prediction = prediction.permute(0, 2, 3, 1)
         ab = ab.permute(0, 2, 3, 1)
 
-        imgs = annealed_mean(prediction.cpu().detach().numpy())
+        imgs = z_to_y(prediction.cpu().detach().numpy()).squeeze(-2)
+        l = l.permute(0, 2, 3, 1).cpu().detach().numpy()
+        ab = ab.cpu().detach().numpy()
+
+        # combine l channel with imgs channel
+        first_img_predicted = np.concatenate((l[0], imgs[0]), axis=-1)
+        first_img_true = np.concatenate((l[0], ab[0]), axis=-1)
         
-        first_img_predicted = [l[0].cpu().detach().numpy(), imgs[0]]
-        first_img_true = [l[0].cpu().detach().numpy(), ab[0]]
-        
-        # plot side by side
         fig, axs = plt.subplots(1, 2)
-        axs[0].imshow(color.lab2rgb(np.transpose(first_img_predicted, (1,2,0))))
-        axs[1].imshow(color.lab2rgb(np.transpose(first_img_true, (1,2,0))))
+        axs[0].imshow(color.lab2rgb(first_img_predicted))
+        axs[1].imshow(color.lab2rgb(first_img_true))
         plt.show()
         break
 
