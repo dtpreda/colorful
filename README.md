@@ -3,18 +3,18 @@
 This repository contains a PyTorch implementation of the [Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf) paper by Zhang et Al.
 
 Some changes were made, namely:
-- As no clear instructions are given on how to get the 313 color bins, these were calculated by myself as closely as possible. I ended up with 326 colors. 
+- As no clear instructions are given on how to get the 313 colour bins, these were calculated by myself as closely as possible. I ended up with 326 colours. 
     - See [this discussion](https://github.com/richzhang/colorization/issues/23) on the original repository for more details or [this project](https://github.com/Riretta/LabSpace_YCbCrSpace) for alternatives
-- I changed the network architecture to accomodate 326 different classes instead of the original 313.
+- I changed the network architecture to accommodate 326 different classes instead of the original 313.
 - The script provided trains on the STL10 dataset, as I don't have the hardware to work on ImageNET.
 
 ## Implementation Details
 
 ### Color Quantization
 
-The discretization is made by iterating through each RGB combination and converting it to LAB space. This, however, leaves us with ~260 colors, far fewer than the original 313.
+The discretization is made by iterating through each RGB combination and converting it to LAB space. This, however, leaves us with ~260 colours, far fewer than the original 313.
 
-However, by accounting the soft enconding mechanism described in the original paper, we can find the missing colors. For each color in gamut, instead of simply taking the closest AB bin, we instead take the 5 closest ones. This leaves us with the final 326 colours.
+However, by accounting for the soft encoding mechanism described in the original paper, we can find the missing colours. For each colour in the gamut, instead of simply taking the closest AB bin, we take the 5 closest ones. This leaves us with the final 326 colours.
 
 The image below shows the colour bins for L=50.
 
@@ -36,13 +36,13 @@ $$ w = \frac w S$$
 
 ### Annealed Mean
 
-To calculate the annealed mean, it suffices to follow the equation 5 of the article.
+To calculate the annealed mean, it suffices to follow equation 5 of the article.
 
 ## How to run
 
 ### Requirements
 
-I recommend using a Mamba environemnt. After installing Mamba, you can get up to speed with the following:
+I recommend using a [Mamba](https://mamba.readthedocs.io/en/latest/mamba-installation.html) environment. After installing Mamba, you can get up to speed with the following:
 ```
 $ mamba create -n colorful
 $ mamba activate colorful
