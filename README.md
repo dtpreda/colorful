@@ -1,6 +1,6 @@
 # Colorful Image Colorization (Zhang et al, 2016)
 
-This repository contains a PyTorch implementation of the [Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf) paper by Zhang et Al.
+This repository contains a PyTorch implementation of the [Colorful Image Colorization](https://arxiv.org/pdf/1603.08511.pdf) paper by Zhang et Al, 2016.
 
 Some changes were made, namely:
 - As no clear instructions are given on how to get the 313 colour bins, these were calculated by myself as closely as possible. I ended up with 326 colours. 
