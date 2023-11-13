@@ -23,6 +23,7 @@ parser.add_argument("--epochs", type=int, default=10)
 parser.add_argument("--learning-rate", type=float, default=1e-3)
 parser.add_argument("--num-workers", type=int, default=4)
 parser.add_argument("--gpu", type=int, default=-1)
+parser.add_argument("--dataroot", type=str, default="./data")
 
 def set_device(gpu):
     use_gpu = args.gpu != -1 and torch.cuda.is_available()
@@ -34,7 +35,7 @@ def set_device(gpu):
 
     return device
 
-def get_dataloader(batch_size, num_workers, train=True):
+def get_dataloader(dataroot, batch_size, num_workers, split='unlabeled'):
     def import_image(img):
         return torch.FloatTensor(np.transpose(color.rgb2lab(np.array(img)), (2,0,1)))
     
@@ -42,7 +43,7 @@ def get_dataloader(batch_size, num_workers, train=True):
         transforms.Lambda(import_image),
     ])
 
-    dataset = torchvision.datasets.CIFAR10(root='./data', train=train,
+    dataset = torchvision.datasets.STL10(root=dataroot, split=split,
                                             download=True, transform=transform)
     
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
@@ -58,8 +59,8 @@ if __name__ == "__main__":
     hull = np.load("data/hull.npy")
     weights = np.load("data/class_rebalance_weights.npy")
 
-    trainloader = get_dataloader(args.batch_size, args.num_workers, train=True)
-    testloader = get_dataloader(args.batch_size, args.num_workers, train=False)
+    trainloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='unlabeled')
+    testloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='test')
     
     TRAIN_SIZE = len(trainloader)
     TEST_SIZE = len(testloader)

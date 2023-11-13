@@ -17,6 +17,7 @@ parser.add_argument("--batch-size", type=int, default=10)
 parser.add_argument("--num-workers", type=int, default=4)
 parser.add_argument("--gpu", type=int, default=-1)
 parser.add_argument("--model", type=str, default="model.pth")
+parser.add_argument("--dataroot", type=str, default="./data")
 
 
 if __name__ == "__main__":
@@ -35,7 +36,7 @@ if __name__ == "__main__":
         transforms.Lambda(import_image),
     ])
 
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+    trainset = torchvision.datasets.STL10(root=args.dataroot, split='test',
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,
                                             shuffle=True, num_workers=args.num_workers)
