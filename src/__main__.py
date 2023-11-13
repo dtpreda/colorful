@@ -137,8 +137,13 @@ if __name__ == "__main__":
         
         print("Epoch {} train loss: {}".format(epoch, np.mean(train_loss[-TRAIN_SIZE:])))
         print("Epoch {} test loss: {}".format(epoch, np.mean(test_loss[-TEST_SIZE:])))
+        
+        if epoch != 0 and np.mean(test_loss[-TEST_SIZE:]) < np.mean(test_loss[-TEST_SIZE-TEST_SIZE:-TEST_SIZE]):
+            print("Saving model at epoch {}".format(epoch))
+            torch.save(model.state_dict(), "model_best.pth")
+
     
-    torch.save(model.state_dict(), "model.pth")
+    torch.save(model.state_dict(), "model_latest.pth")
 
     # plot losses
     matplotlib.use('Qt5Agg')
