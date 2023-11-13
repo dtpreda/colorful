@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-from colour.soft_encode import soft_encode
+from src.colour.soft_encode import soft_encode
 import torch
 
 def reweight(ab, weights):
@@ -12,7 +12,7 @@ def reweight(ab, weights):
 
 if __name__ == "__main__":
     matplotlib.use("WX")
-    
+
     weights = torch.from_numpy(np.load("data/cifar-10/class_rebalance_weights.npy"))
     hull = torch.from_numpy(np.load("data/hull.npy"))
     
