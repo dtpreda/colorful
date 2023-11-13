@@ -10,12 +10,12 @@ def soft_encode(ab, centroids=get_ab_centroids(), n=5):
     # flatten ab
     n, h, w, c = ab.shape
     ab = ab.reshape(-1, 2)
-    distances, indices = neigh.kneighbors(ab)
+    distances, indices = neigh.kneighbors(ab.cpu().numpy())
     distances, indices = torch.from_numpy(distances.astype(np.float32)).to(ab.device), torch.from_numpy(indices.astype(np.int32)).to(ab.device)
     distances, indices = distances[:, 1:], indices[:, 1:]
     distances = distances / torch.sum(distances, dim=1, keepdim=True)
     
-    encoding = torch.zeros((ab.shape[0], centroids.shape[0]), dtype=torch.float32)
+    encoding = torch.zeros((ab.shape[0], centroids.shape[0]), dtype=torch.float32).to(ab.device)
     encoding[torch.arange(ab.shape[0])[:, None], indices] = distances
 
     encoding = encoding.reshape(n, h, w, -1)

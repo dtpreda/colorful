@@ -55,8 +55,8 @@ if __name__ == "__main__":
 
     device = set_device(args.gpu)
     
-    hull = np.load("data/hull.npy")
-    weights = np.load("data/stl10/class_rebalance_weights.npy")
+    hull = torch.from_numpy(np.load("data/hull.npy"))
+    weights = torch.from_numpy(np.load("data/stl10/class_rebalance_weights.npy")).to(device)
 
     trainloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='unlabeled')
     testloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='test')
