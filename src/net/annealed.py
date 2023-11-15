@@ -6,19 +6,18 @@ def annealed_mean(z, T=0.38):
     # if z is not a numpy array, convert it
     if not isinstance(z, np.ndarray):
         z = np.array(z, dtype=np.float32)
-    
-    # calculate along the last axis
-    f = np.exp(np.log(z) / T) / np.sum(np.exp(np.log(z) / T), axis=-1, keepdims=True)
+
+    f = np.exp(np.log(z) / T) / (np.sum(np.exp(np.log(z) / T), axis=-1, keepdims=True) + 1e-8)
 
     return np.sum(f * np.arange(326), axis=-1, keepdims=True)
 
 def mean_to_ab(mean, hull):
-    mean = np.round(mean).astype(np.int32)
+    mean = np.round(mean).astype(np.int64)
     return hull[mean]
 
 def z_to_y(z):
     hull = np.load("data/hull.npy")
-    mean = annealed_mean(z)
+    mean = annealed_mean(z + 1e-8)
     return mean_to_ab(mean, hull)
 
 if __name__ == "__main__":
