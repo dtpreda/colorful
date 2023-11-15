@@ -73,7 +73,7 @@ if __name__ == "__main__":
     checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset + "_" + datetime.now().strftime("%b%d%H-%M") + "_" + str(hash(datetime.now().microsecond)))
     os.makedirs(checkpoint_dir, exist_ok=True)
     
-    hull = torch.from_numpy(np.load("data/hull.npy"))
+    hull = torch.from_numpy(np.load("data/hull.npy")).to(device)
     weights = torch.from_numpy(np.load(f"data/{args.dataset}/class_rebalance_weights.npy")).to(device)
 
     trainloader, testloader = get_dataloaders(args.dataset, args.dataroot, args.batch_size, args.num_workers)
