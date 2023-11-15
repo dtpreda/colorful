@@ -13,7 +13,8 @@ def soft_encode(ab, centroids=get_ab_centroids(), n=5):
     distances, indices = neigh.kneighbors(ab.cpu().numpy())
     distances, indices = torch.from_numpy(distances.astype(np.float32)).to(ab.device), torch.from_numpy(indices.astype(np.int32)).to(ab.device)
     distances, indices = distances[:, 1:], indices[:, 1:]
-    distances = distances / torch.sum(distances, dim=1, keepdim=True)
+    distances = torch.exp(-distances**2 / (2 * 5**2))
+    distances = distances / torch.sum(distances, dim=-1, keepdim=True)
     
     encoding = torch.zeros((ab.shape[0], centroids.shape[0]), dtype=torch.float32).to(ab.device)
     encoding[torch.arange(ab.shape[0])[:, None], indices] = distances
@@ -25,7 +26,9 @@ def soft_encode(ab, centroids=get_ab_centroids(), n=5):
     
 
 if __name__ == "__main__":
-    hull = np.load("data/hull.npy")
+    hull = torch.from_numpy(np.load("data/hull.npy"))
     ab = np.array([[[[50, -51], [-52,50]], [[50, -51], [-52,50]]], [[[50, -51], [-52,50]], [[50, -51], [-52,50]]], [[[50, -51], [-52,50]], [[50, -51], [-52,50]]]], dtype=np.float32)
+    ab = torch.from_numpy(ab)
     encoding = soft_encode(ab, centroids=hull, n=5)
     print(encoding.shape)
+    print(encoding[0, 0, 0, :])
