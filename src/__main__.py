@@ -13,6 +13,8 @@ import numpy as np
 import torch
 from torch.optim import Adam
 from torch import cuda
+import os
+from datetime import datetime
 
 from argparse import ArgumentParser
 
@@ -24,6 +26,7 @@ parser.add_argument("--num-workers", type=int, default=4)
 parser.add_argument("--gpu", type=int, default=-1)
 parser.add_argument("--dataroot", type=str, default="./data")
 parser.add_argument("--dataset", type=str, default="stl10", choices=["stl10", "cifar-10"])
+parser.add_argument("--checkpoint_dir", type=str, default="./out")
 
 def set_device(gpu):
     use_gpu = args.gpu != -1 and torch.cuda.is_available()
@@ -65,6 +68,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = set_device(args.gpu)
+
+    checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset + "_" + datetime.now().strftime("%b%d%H-%M") + "_" + str(hash(datetime.now().microsecond)))
+    os.makedirs(checkpoint_dir, exist_ok=True)
     
     hull = torch.from_numpy(np.load("data/hull.npy"))
     weights = torch.from_numpy(np.load(f"data/{args.dataset}/class_rebalance_weights.npy")).to(device)
@@ -101,7 +107,7 @@ if __name__ == "__main__":
                 ground_truth = soft_encode(ab, centroids=hull, n=5)
                 pixelwise_weights = reweight(ground_truth, weights)
 
-                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction), dim=-1), dim=(-1, -2))
+                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
 
                 optimizer.zero_grad()
@@ -132,7 +138,7 @@ if __name__ == "__main__":
                 ground_truth = soft_encode(ab, centroids=hull, n=5)
                 pixelwise_weights = reweight(ground_truth, weights)
 
-                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction), dim=-1), dim=(-1, -2))
+                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
 
                 test_loss.append(loss.item())
@@ -143,16 +149,14 @@ if __name__ == "__main__":
         
         print("Epoch {} test loss: {}".format(epoch, np.mean(test_loss[-TEST_SIZE:])))
         
-        if epoch != 0 and np.mean(test_loss[-TEST_SIZE:]) < np.mean(test_loss[-TEST_SIZE-TEST_SIZE:-TEST_SIZE]):
+        if epoch == 0 or np.mean(test_loss[-TEST_SIZE:]) < np.mean(test_loss[-TEST_SIZE-TEST_SIZE:-TEST_SIZE]):
             print("Saving model at epoch {}".format(epoch))
-            torch.save(model.state_dict(), "model_best.pth")
+            torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_best.pth".format(epoch)))
 
     
-    torch.save(model.state_dict(), "model_latest.pth")
+    torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_latest.pth"))
 
-    # plot losses
-    matplotlib.use('Qt5Agg')
     plt.plot(train_loss)
     plt.plot(test_loss)
-    plt.savefig("loss.png")
+    plt.savefig(os.path.join(checkpoint_dir, "loss.png"))
     
