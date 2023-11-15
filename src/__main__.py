@@ -23,6 +23,7 @@ parser.add_argument("--learning-rate", type=float, default=1e-3)
 parser.add_argument("--num-workers", type=int, default=4)
 parser.add_argument("--gpu", type=int, default=-1)
 parser.add_argument("--dataroot", type=str, default="./data")
+parser.add_argument("--dataset", type=str, default="stl10", choices=["stl10", "cifar-10"])
 
 def set_device(gpu):
     use_gpu = args.gpu != -1 and torch.cuda.is_available()
@@ -34,7 +35,7 @@ def set_device(gpu):
 
     return device
 
-def get_dataloader(dataroot, batch_size, num_workers, split='unlabeled'):
+def get_dataloaders(dataset, dataroot, batch_size, num_workers):
     def import_image(img):
         return torch.FloatTensor(np.transpose(color.rgb2lab(np.array(img)), (2,0,1)))
     
@@ -42,13 +43,23 @@ def get_dataloader(dataroot, batch_size, num_workers, split='unlabeled'):
         transforms.Lambda(import_image),
     ])
 
-    dataset = torchvision.datasets.STL10(root=dataroot, split=split,
-                                            download=True, transform=transform)
+    if dataset == "stl10":
+        traindataset = torchvision.datasets.STL10(root=dataroot, split='unlabeled',
+                                                download=True, transform=transform)
+        testdataset = torchvision.datasets.STL10(root=dataroot, split='test',
+                                                download=True, transform=transform)
+    elif dataset == "cifar-10":
+        traindataset = torchvision.datasets.CIFAR10(root=dataroot, train=True,
+                                                download=True, transform=transform)
+        testdataset = torchvision.datasets.CIFAR10(root=dataroot, train=False,
+                                                download=True, transform=transform)
     
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+    trainloader = torch.utils.data.DataLoader(traindataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=num_workers)
+    testloader = torch.utils.data.DataLoader(testdataset, batch_size=batch_size,
                                             shuffle=True, num_workers=num_workers)
     
-    return dataloader
+    return trainloader, testloader
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -56,10 +67,9 @@ if __name__ == "__main__":
     device = set_device(args.gpu)
     
     hull = torch.from_numpy(np.load("data/hull.npy"))
-    weights = torch.from_numpy(np.load("data/stl10/class_rebalance_weights.npy")).to(device)
+    weights = torch.from_numpy(np.load(f"data/{args.dataset}/class_rebalance_weights.npy")).to(device)
 
-    trainloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='unlabeled')
-    testloader = get_dataloader(args.dataroot, args.batch_size, args.num_workers, split='test')
+    trainloader, testloader = get_dataloaders(args.dataset, args.dataroot, args.batch_size, args.num_workers)
     
     TRAIN_SIZE = len(trainloader)
     TEST_SIZE = len(testloader)
@@ -77,6 +87,7 @@ if __name__ == "__main__":
 
     for epoch in range(epochs):
         print("Epoch {}".format(epoch))
+        model.train()
         with tqdm(total=TRAIN_SIZE) as pbar:
             for i, data in enumerate(trainloader):
                 inputs, _ = data
@@ -104,6 +115,9 @@ if __name__ == "__main__":
             
             pbar.close()
 
+        print("Epoch {} train loss: {}".format(epoch, np.mean(train_loss[-TRAIN_SIZE:])))
+        
+        model.eval()
         with tqdm(total=TEST_SIZE) as pbar:
             print("Testing Epoch {}".format(epoch))
             for i, data in enumerate(testloader):
@@ -121,18 +135,12 @@ if __name__ == "__main__":
                 loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
 
-                optimizer.zero_grad()
-                loss.backward()
-
-                optimizer.step()
-
-                train_loss.append(loss.item())
+                test_loss.append(loss.item())
 
                 pbar.update(1)
             
             pbar.close()
         
-        print("Epoch {} train loss: {}".format(epoch, np.mean(train_loss[-TRAIN_SIZE:])))
         print("Epoch {} test loss: {}".format(epoch, np.mean(test_loss[-TEST_SIZE:])))
         
         if epoch != 0 and np.mean(test_loss[-TEST_SIZE:]) < np.mean(test_loss[-TEST_SIZE-TEST_SIZE:-TEST_SIZE]):
