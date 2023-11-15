@@ -11,9 +11,9 @@ def reweight(ab, weights):
     return weights
 
 if __name__ == "__main__":
-    matplotlib.use("WX")
+    #matplotlib.use("WX")
 
-    weights = torch.from_numpy(np.load("data/cifar-10/class_rebalance_weights.npy"))
+    weights = torch.from_numpy(np.load("data/stl10/class_rebalance_weights.npy"))
     hull = torch.from_numpy(np.load("data/hull.npy"))
     
     ab = torch.tensor([[[[50, -51], [-52,50]], [[50, -51], [-52,50]]], [[[100, -1], [-52,50]], [[50, -51], [-52,50]]], [[[50, -51], [-52,50]], [[50, -51], [-52,50]]]], dtype=torch.float32)

@@ -66,7 +66,7 @@ if __name__ == "__main__":
         fig, axs = plt.subplots(1, 2)
         axs[0].imshow(color.lab2rgb(first_img_predicted))
         axs[1].imshow(color.lab2rgb(first_img_true))
-        plt.show()
+        plt.savefig("test_example.png")
         break
 
     
