@@ -21,7 +21,8 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument("--batch-size", type=int, default=64)
 parser.add_argument("--epochs", type=int, default=10)
-parser.add_argument("--learning-rate", type=float, default=1e-3)
+parser.add_argument("--learning-rate", type=float, default=3e-5)
+parser.add_argument("--weight-decay", type=float, default=1e-3)
 parser.add_argument("--num-workers", type=int, default=4)
 parser.add_argument("--gpu", type=int, default=-1)
 parser.add_argument("--dataroot", type=str, default="./data")
@@ -86,8 +87,9 @@ if __name__ == "__main__":
 
     epochs = args.epochs
     learning_rate = args.learning_rate
+    weight_decay = args.weight_decay
 
-    optimizer = Adam(model.parameters(), lr=learning_rate)
+    optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     train_loss = []
     test_loss = []
 
@@ -104,7 +106,7 @@ if __name__ == "__main__":
                 prediction = prediction.permute(0, 2, 3, 1)
                 ab = ab.permute(0, 2, 3, 1)
 
-                ground_truth = soft_encode(ab, centroids=hull, n=5)
+                ground_truth = soft_encode(ab, centroids=hull)
                 pixelwise_weights = reweight(ground_truth, weights)
 
                 loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
@@ -127,23 +129,25 @@ if __name__ == "__main__":
         with tqdm(total=TEST_SIZE) as pbar:
             print("Testing Epoch {}".format(epoch))
             for i, data in enumerate(testloader):
-                inputs, _ = data
-                inputs = inputs.to(device)
-                l, ab = inputs[:, 0, :, :], inputs[:, 1:, :, :]
-                l = l.unsqueeze(1)
-                prediction = model(l)
-                prediction = prediction.permute(0, 2, 3, 1)
-                ab = ab.permute(0, 2, 3, 1)
 
-                ground_truth = soft_encode(ab, centroids=hull, n=5)
-                pixelwise_weights = reweight(ground_truth, weights)
+                with torch.no_grad():
+                    inputs, _ = data
+                    inputs = inputs.to(device)
+                    l, ab = inputs[:, 0, :, :], inputs[:, 1:, :, :]
+                    l = l.unsqueeze(1)
+                    prediction = model(l)
+                    prediction = prediction.permute(0, 2, 3, 1)
+                    ab = ab.permute(0, 2, 3, 1)
 
-                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
-                loss = torch.mean(loss)
+                    ground_truth = soft_encode(ab, centroids=hull)
+                    pixelwise_weights = reweight(ground_truth, weights)
 
-                test_loss.append(loss.item())
+                    loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
+                    loss = torch.mean(loss)
 
-                pbar.update(1)
+                    test_loss.append(loss.item())
+
+                    pbar.update(1)
             
             pbar.close()
         
