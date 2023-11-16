@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 ground_truth = ab_to_z(ab, hull)
                 pixelwise_weights = reweight(ground_truth, weights)
 
-                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction + 1e-8), dim=-1), dim=(-1, -2))
+                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction, dim=-1), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
 
                 optimizer.zero_grad()
@@ -143,7 +143,7 @@ if __name__ == "__main__":
                     ground_truth = ab_to_z(ab, hull)
                     pixelwise_weights = reweight(ground_truth, weights)
 
-                    loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction + 1e-8), dim=-1), dim=(-1, -2))
+                    loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction, dim=-1), dim=-1), dim=(-1, -2))
                     loss = torch.mean(loss)
 
                     # test_loss.append(loss.item())
