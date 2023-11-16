@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 
-def annealed_mean(z, T=0.20):
+def annealed_mean(z, T=0.38):
     # if z is not a numpy array, convert it
     if not isinstance(z, np.ndarray):
         z = np.array(z, dtype=np.float64)
@@ -15,7 +15,6 @@ def z_to_y(z):
     mean = annealed_mean(z)
     expected_value = np.sum(mean * np.arange(hull.shape[0]), axis=-1, keepdims=True)
     expected_value = np.round(expected_value).astype(np.int64)
-    print(expected_value.shape)
     return hull[expected_value].squeeze(-2)
 
 if __name__ == "__main__":
