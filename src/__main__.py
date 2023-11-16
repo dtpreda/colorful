@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     device = set_device(args.gpu)
 
-    checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset + "_" + datetime.now().strftime("%b%d%H-%M") + "_" + str(hash(datetime.now().microsecond)))
+    checkpoint_dir = os.path.join(args.checkpoint_dir, args.dataset + "_" + datetime.now().strftime("%b%dT%H-%M") + "_" + str(hash(datetime.now().microsecond)))
     os.makedirs(checkpoint_dir, exist_ok=True)
     
     hull = torch.from_numpy(np.load("data/hull.npy")).to(device)
@@ -96,6 +96,7 @@ if __name__ == "__main__":
     for epoch in range(epochs):
         print("Epoch {}".format(epoch))
         model.train()
+        train_loss.append(0)
         with tqdm(total=TRAIN_SIZE) as pbar:
             for i, data in enumerate(trainloader):
                 inputs, _ = data
@@ -117,17 +118,19 @@ if __name__ == "__main__":
 
                 optimizer.step()
 
-                train_loss.append(loss.item())
-
+                # train_loss.append(loss.item())
+                train_loss[-1] += loss.item()
                 pbar.update(1)
             
             pbar.close()
 
-        print("Epoch {} train loss: {}".format(epoch, np.mean(train_loss[-TRAIN_SIZE:])))
+        train_loss[-1] /= TRAIN_SIZE
+        print("Epoch {} train loss: {}".format(epoch, train_loss[-1]))
         
         model.eval()
         with tqdm(total=TEST_SIZE) as pbar:
             print("Testing Epoch {}".format(epoch))
+            test_loss.append(0)
             for i, data in enumerate(testloader):
 
                 with torch.no_grad():
@@ -145,15 +148,17 @@ if __name__ == "__main__":
                     loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
                     loss = torch.mean(loss)
 
-                    test_loss.append(loss.item())
+                    # test_loss.append(loss.item())
+                    test_loss[-1] += loss.item()
 
                     pbar.update(1)
             
             pbar.close()
         
-        print("Epoch {} test loss: {}".format(epoch, np.mean(test_loss[-TEST_SIZE:])))
+        test_loss[-1] /= TEST_SIZE
+        print("Epoch {} test loss: {}".format(epoch, test_loss[-1]))
         
-        if epoch == 0 or np.mean(test_loss[-TEST_SIZE:]) < np.mean(test_loss[-TEST_SIZE-TEST_SIZE:-TEST_SIZE]):
+        if epoch == 0 or test_loss[-1] < min(test_loss[:-1]):
             print("Saving model at epoch {}".format(epoch))
             torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_best.pth".format(epoch)))
 

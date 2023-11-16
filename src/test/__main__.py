@@ -55,7 +55,7 @@ if __name__ == "__main__":
         prediction = prediction.permute(0, 2, 3, 1)
         ab = ab.permute(0, 2, 3, 1)
 
-        imgs = z_to_y(prediction.cpu().detach().numpy()).squeeze(-2)
+        imgs = z_to_y(prediction.cpu().detach().numpy())
         l = l.permute(0, 2, 3, 1).cpu().detach().numpy()
         ab = ab.cpu().detach().numpy()
 

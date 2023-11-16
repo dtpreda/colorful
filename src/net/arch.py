@@ -101,7 +101,7 @@ class Colorizer(nn.Module):
             *[
                 nn.Conv2d(256, 326, 1, padding=0, stride=1, dilation=1, bias=True),
                 nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True),
-                nn.Softmax2d(),
+                nn.Softmax(dim=1),
             ]
         )
 

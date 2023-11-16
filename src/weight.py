@@ -18,7 +18,7 @@ if __name__ == "__main__":
     
     ab = torch.tensor([[[[50, -51], [-52,50]], [[50, -51], [-52,50]]], [[[100, -1], [-52,50]], [[50, -51], [-52,50]]], [[[50, -51], [-52,50]], [[50, -51], [-52,50]]]], dtype=torch.float32)
     
-    ab = soft_encode(ab, centroids=hull, n=5)
+    ab = soft_encode(ab, centroids=hull, neighbours=5)
     weights = reweight(ab, weights)
 
     print(weights.shape)
