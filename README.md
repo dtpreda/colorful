@@ -6,7 +6,7 @@ Some changes were made, namely:
 - As no clear instructions are given on how to get the 313 colour bins, these were calculated by myself as closely as possible. I ended up with 326 colours. 
     - See [this discussion](https://github.com/richzhang/colorization/issues/23) on the original repository for more details or [this project](https://github.com/Riretta/LabSpace_YCbCrSpace) for alternatives
 - I changed the network architecture to accommodate 326 different classes instead of the original 313.
-- The script provided trains on the STL10 dataset, as I don't have the hardware to work on ImageNET.
+- The script provided trains on the STL10 dataset, as working with the full ImageNet dataset was unfeasible for me.
 
 ## Implementation Details
 
