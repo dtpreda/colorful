@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     device = set_device(args.gpu)
     
-    hull = torch.from_numpy(np.load("data/hull.npy"))
+    hull = torch.from_numpy(np.load("data/hull.npy")).to(device)
 
     trainloader, _ = get_dataloaders(args.dataset, args.dataroot, args.batch_size, args.num_workers)
 
@@ -75,7 +75,7 @@ if __name__ == "__main__":
             inputs = inputs.to(device)
             inputs = inputs.permute(0, 2, 3, 1)
             l, ab = inputs[:,:,:,0], inputs[:,:,:,1:]
-            encoding = soft_encode(ab, centroids=hull, n=5)
+            encoding = soft_encode(ab, centroids=hull)
 
             distribution += torch.sum(encoding, axis=(0))
 
