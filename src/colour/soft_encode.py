@@ -5,7 +5,6 @@ import numpy as np
 import torch
 
 def soft_encode(ab, centroids, neighbours=5):
-    # flatten ab
     n, h, w, c = ab.shape
     ab = ab.reshape(-1, 2)
     distances = torch.cdist(ab, centroids)

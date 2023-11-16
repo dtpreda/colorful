@@ -1,20 +1,16 @@
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
+import torch
 
 def annealed_mean(z, T=0.38):
-    # if z is not a numpy array, convert it
-    if not isinstance(z, np.ndarray):
-        z = np.array(z, dtype=np.float64)
+    q = torch.exp(torch.log(z + 1e-8) / T)
+    return q / (torch.sum(q, axis=-1, keepdims=True) + 1e-8)
 
-    q = np.exp(np.log(z + 1e-8) / T)
-    return q / (np.sum(q, axis=-1, keepdims=True) + 1e-8)
-
-def z_to_y(z):
-    hull = np.load("data/hull.npy")
+def z_to_y(z, hull):
     mean = annealed_mean(z)
-    expected_value = np.sum(mean * np.arange(hull.shape[0]), axis=-1, keepdims=True)
-    expected_value = np.round(expected_value).astype(np.int64)
+    expected_value = torch.sum(mean * torch.arange(hull.shape[0]).to(z.device), dim=-1, keepdim=True)
+    expected_value = torch.round(expected_value).to(torch.int64)
     return hull[expected_value].squeeze(-2)
 
 if __name__ == "__main__":

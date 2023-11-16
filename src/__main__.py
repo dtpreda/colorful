@@ -2,7 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 from src.net.arch import Colorizer
-from src.colour.soft_encode import soft_encode
+from src.colour import ab_to_z
 from src.weight import reweight
 
 import torchvision.transforms as transforms
@@ -105,12 +105,11 @@ if __name__ == "__main__":
                 l = l.unsqueeze(1)
                 prediction = model(l)
                 prediction = prediction.permute(0, 2, 3, 1)
-                ab = ab.permute(0, 2, 3, 1)
 
-                ground_truth = soft_encode(ab, centroids=hull)
+                ground_truth = ab_to_z(ab, hull)
                 pixelwise_weights = reweight(ground_truth, weights)
 
-                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
+                loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction + 1e-8), dim=-1), dim=(-1, -2))
                 loss = torch.mean(loss)
 
                 optimizer.zero_grad()
@@ -140,12 +139,11 @@ if __name__ == "__main__":
                     l = l.unsqueeze(1)
                     prediction = model(l)
                     prediction = prediction.permute(0, 2, 3, 1)
-                    ab = ab.permute(0, 2, 3, 1)
-
-                    ground_truth = soft_encode(ab, centroids=hull)
+                    
+                    ground_truth = ab_to_z(ab, hull)
                     pixelwise_weights = reweight(ground_truth, weights)
 
-                    loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.log(prediction + 1e-8), dim=-1), dim=(-1, -2))
+                    loss = -torch.sum(pixelwise_weights * torch.sum(ground_truth * torch.nn.functional.log_softmax(prediction + 1e-8), dim=-1), dim=(-1, -2))
                     loss = torch.mean(loss)
 
                     # test_loss.append(loss.item())
@@ -163,9 +161,9 @@ if __name__ == "__main__":
             torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_best.pth".format(epoch)))
 
     
-    torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_latest.pth"))
+        torch.save(model.state_dict(), os.path.join(checkpoint_dir, "model_latest.pth"))
 
-    plt.plot(train_loss)
-    plt.plot(test_loss)
-    plt.savefig(os.path.join(checkpoint_dir, "loss.png"))
+        plt.plot(train_loss)
+        plt.plot(test_loss)
+        plt.savefig(os.path.join(checkpoint_dir, "loss.png"))
     

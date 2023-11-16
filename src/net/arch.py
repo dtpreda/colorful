@@ -2,6 +2,13 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+L_CENTER = 50.0
+L_RANGE = 100.0
+AB_RANGE = 110.0
+
+def normalize_l(l):
+    return (l - L_CENTER) / L_RANGE
+
 class Colorizer(nn.Module):
     def __init__(self):
         super(Colorizer, self).__init__()
@@ -100,12 +107,13 @@ class Colorizer(nn.Module):
         self.softmax = nn.Sequential(
             *[
                 nn.Conv2d(256, 326, 1, padding=0, stride=1, dilation=1, bias=True),
-                nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True),
-                nn.Softmax(dim=1),
+                # nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True),
+                # nn.Softmax(dim=1),
             ]
         )
 
     def forward(self, x):
+        x = normalize_l(x)
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)

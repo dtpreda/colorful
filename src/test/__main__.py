@@ -24,7 +24,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     use_gpu = args.gpu != -1 and torch.cuda.is_available()
     if use_gpu:
-        print("There are ", torch.cuda.device_count(), " available GPUs!")
         torch.cuda.set_device(args.gpu)
         print('Current single GPU: {}'.format(torch.cuda.current_device()))
 
@@ -46,26 +45,30 @@ if __name__ == "__main__":
     model.eval()
     model.to(device)
 
+    upsample = torch.nn.Upsample(scale_factor=4, mode='bilinear')
+    softmax = torch.nn.Softmax(dim=1)
+
+    hull = torch.from_numpy(np.load("data/hull.npy")).to(device)
+
     for i, data in enumerate(trainloader, 0):
         inputs, _ = data
         inputs = inputs.to(device)
         l, ab = inputs[:, 0, :, :], inputs[:, 1:, :, :]
         l = l.unsqueeze(1)
-        prediction = model(l)
-        prediction = prediction.permute(0, 2, 3, 1)
+        prediction = softmax(model(l)).permute(0, 2, 3, 1)
         ab = ab.permute(0, 2, 3, 1)
 
-        imgs = z_to_y(prediction.cpu().detach().numpy())
-        l = l.permute(0, 2, 3, 1).cpu().detach().numpy()
-        ab = ab.cpu().detach().numpy()
+        imgs = z_to_y(prediction, hull)
+        imgs = upsample(imgs.permute(0,3,1,2)).permute(0,2,3,1)
+        l = l.permute(0, 2, 3, 1)
 
         # combine l channel with imgs channel
-        first_img_predicted = np.concatenate((l[0], imgs[0]), axis=-1)
-        first_img_true = np.concatenate((l[0], ab[0]), axis=-1)
+        first_img_predicted = torch.cat((l[0], imgs[0]), axis=-1)
+        first_img_true = torch.cat((l[0], ab[0]), axis=-1)
         
         fig, axs = plt.subplots(1, 2)
-        axs[0].imshow(color.lab2rgb(first_img_predicted))
-        axs[1].imshow(color.lab2rgb(first_img_true))
+        axs[0].imshow(color.lab2rgb(first_img_predicted.cpu().detach().numpy()))
+        axs[1].imshow(color.lab2rgb(first_img_true.cpu().detach().numpy()))
         plt.savefig("test_example.png")
         break
 
